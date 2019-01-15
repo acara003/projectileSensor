@@ -36,28 +36,19 @@ int main(void)
     unsigned char SendLED = 0x00;
     unsigned char buttonYellow = 0x00;
     
-    //for i2c
-    //unsigned char ret;
-    
-    //for LED
-    uint16_t displaybuffer[8]; 
-    
     //turn on the LED 7seg
     (init7seg(0,15,dev7SEG)) ? (PORTA = 0xFF) : (PORTA = 0x01);
-        
+    
+    //setup for the 7segment    
     i2c_start((dev7SEG<<1)+I2C_WRITE);
-    i2c_write((uint8_t)0x00);            //begin at address 0;
     
-    //this is what is going to be printed
-    displaybuffer[2] = 0x02;
-    
-    //go through stored things to display
-    for (uint8_t i=0; i<8; i++) {
-        i2c_write(displaybuffer[i] & 0xFF);
-        i2c_write(displaybuffer[i] >> 8);
+    for(uint16_t count = 0; count <= 250; ++count) {
+        //write number
+        writeNum(count,0);
+        
+        //write to the display
+        writeDisplay(dev7SEG);   
     }
-    
-    i2c_stop();
     
     while (1) 
     {
@@ -67,7 +58,6 @@ int main(void)
         } else {
             SendLED = 0x00;
         }
-        
         
         if(USART_HasReceived(0)) {
             LED = USART_receive(0);
