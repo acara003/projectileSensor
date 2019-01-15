@@ -41,11 +41,9 @@ unsigned char init7seg(unsigned char blink, unsigned char brightness, unsigned c
         i2c_stop();
         return 1;
     } else {
-        if(blink > 3) {
-            return 1;
-        } else if(brightness > 15) {
-            return 1;
-        }
+        if(blink > 3) return 1;
+		
+		if(brightness > 15) return 1;
         
         // turn oscillator on
         i2c_write(0x21);
