@@ -10,6 +10,7 @@
 #include "usart.h"
 //#include "i2cmaster.h"
 #include "adafruit_7seg.h"
+#include "ATmegaTimer.h"
 
 //#define FOSC 1843200
 #define FOSC 8000000UL
@@ -32,28 +33,31 @@ int main(void)
     //i2c
     i2c_init();
     
+    //timer set to 100 msec
+    TimerSet(100);
+    TimerOn();
+    
     unsigned char LED = 0x00;
     unsigned char SendLED = 0x00;
-    unsigned char buttonYellow = 0x00;
+    unsigned char Ybtn = 0x00;
     
     //turn on the LED 7seg
-    (init7seg(0,15,dev7SEG)) ? (PORTA = 0xFF) : (PORTA = 0x01);
+    init7seg(0,15,dev7SEG);
     
     //setup for the 7segment    
     i2c_start((dev7SEG<<1)+I2C_WRITE);
     
-    for(uint16_t count = 0; count <= 250; ++count) {
-        //write number
-        writeNum(count,0);
+    
+    //write number
+    writeNum(0x1234,0);
         
-        //write to the display
-        writeDisplay(dev7SEG);   
-    }
+    //write to the display
+    writeDisplay(dev7SEG);   
     
     while (1) 
-    {
-        buttonYellow = ~PINB;
-        if((buttonYellow & 0x02) == 0x02) {
+    {   
+        Ybtn = ~PINB;
+        if((Ybtn & 0x02) == 0x02) {
             SendLED = 0x01;
         } else {
             SendLED = 0x00;
@@ -67,7 +71,10 @@ int main(void)
             USART_send(SendLED,1);
         }
         
-        PORTB = LED; 
+        PORTB = LED;
+       
+        while (!TimerFlag);	// Wait .1 sec
+        TimerFlag = 0;
         
     }
 }
