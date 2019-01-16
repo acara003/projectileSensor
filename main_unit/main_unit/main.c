@@ -3,7 +3,7 @@
  *
  * Created: 11/7/2018 1:22:46 PM
  * Author : Alan Carabes
- */ 
+ */
 
 #include <avr/io.h>
 
@@ -20,8 +20,15 @@
 #define dev7SEG  0x70      // device address of 8 segment adafruit LED
 
 //SM
-enum state{init} states;
+enum state{init,waitUp,countUp,countZero,waitDown,countDown,countNum} states;
 void tick();
+
+//variables for SM
+unsigned char Ybtn = 0x00;
+unsigned char Bbtn = 0x00;
+unsigned char IR1 = 0x00;
+
+uint16_t counter = 0x00;
 
 int main(void)
 {
@@ -37,20 +44,12 @@ int main(void)
     //i2c
     i2c_init();
     
-    //timer set to 100 msec
-    TimerSet(100);
+    //timer set to 10 msec
+    TimerSet(10);
     TimerOn();
-    
-    unsigned char LED = 0x00;
-    unsigned char SendLED = 0x00;
-    unsigned char Ybtn = 0x00;
     
     //turn on the LED 7seg
     init7seg(0,15,dev7SEG);
-    
-    //setup for the 7segment    
-    i2c_start((dev7SEG<<1)+I2C_WRITE);
-    
     
     //write number
     writeNum(0x1234,0);
@@ -60,26 +59,20 @@ int main(void)
     
     while (1) 
     {   
-        Ybtn = ~PINB;
-        if((Ybtn & 0x02) == 0x02) {
-            SendLED = 0x01;
-        } else {
-            SendLED = 0x00;
+        Ybtn = (~PINB & 0x02) >> 1;
+        Bbtn = (~PINB & 0x04) >> 2;
+        
+        if(USART_HasReceived(1)) {
+            IR1 = USART_receive(1);
         }
         
-        if(USART_HasReceived(0)) {
-            LED = USART_receive(0);
-        }
-        
-        if(USART_IsSendReady(1)) {
-            USART_send(SendLED,1);
-        }
-        
-        PORTB = LED;
-        
+        PORTB = IR1;
+       
+        //SM
         tick();
        
-        while (!TimerFlag);	// Wait .1 sec
+        //Wait
+        while (!TimerFlag);
         TimerFlag = 0;
         
     }
@@ -88,7 +81,55 @@ int main(void)
 void tick() {
     switch(states) {
         case init:
-            states = init;
+            states = waitUp;
+            break;
+        case waitUp:
+            if(IR1 && !(Ybtn) && !(Bbtn)) {
+                states = countUp;
+                if(counter < 9999) {
+                    counter++;
+                }
+            } else if(!(IR1) && Ybtn && !(Bbtn)) {
+                states = countZero;
+            } else if(!(IR1) && !(Ybtn) && Bbtn) {
+                states = waitDown;
+            } else {
+                states = waitUp;
+            }
+            break;
+        case countUp:
+            if(!(IR1)) {
+                states = waitUp;
+            } else {
+                states = countUp;
+            }
+            break;
+        case countZero:
+            states = waitUp;
+            break;
+        case waitDown:
+            if(IR1 && !(Ybtn) && !(Bbtn)) {
+                states = countDown;
+                if(counter > 0) {
+                    counter--;
+                }
+            } else if(!(IR1) && Ybtn && !(Bbtn)) {
+                states = countNum;
+            } else if(!(IR1) && !(Ybtn) && Bbtn) {
+                states = waitUp;
+            } else {            
+                states = waitDown;
+            }
+            break;
+        case countDown:
+            if(!(IR1)) {
+                states = waitDown;
+            } else {
+                states = countDown;
+            }
+            break;
+        case countNum:
+            states = waitDown;
             break;
         default:
             states = init;
@@ -97,8 +138,30 @@ void tick() {
     
     switch(states) {
         case init:
+            counter = 0;
             break;
-            
+        case waitUp:
+            //write number
+            writeNum(counter,0);
+            //write to the display
+            writeDisplay(dev7SEG);
+            break;
+        case countUp:
+            break;
+        case countZero:
+            counter = 0;
+            break;
+        case waitDown:
+            //write number
+            writeNum(counter,0);
+            //write to the display
+            writeDisplay(dev7SEG);
+            break;
+        case countDown:
+            break;
+        case countNum:
+            counter = 120;
+            break;    
         default:
             break;
     }    
