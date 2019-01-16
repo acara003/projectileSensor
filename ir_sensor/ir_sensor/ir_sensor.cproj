@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>mem_unit</AssemblyName>
-    <Name>mem_unit</Name>
-    <RootNamespace>mem_unit</RootNamespace>
+    <AssemblyName>ir_sensor</AssemblyName>
+    <Name>ir_sensor</Name>
+    <RootNamespace>ir_sensor</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>

@@ -19,6 +19,10 @@
 
 #define dev7SEG  0x70      // device address of 8 segment adafruit LED
 
+//SM
+enum state{init} states;
+void tick();
+
 int main(void)
 {
     DDRA = 0xFF; PORTA = 0x00; // LED
@@ -72,10 +76,32 @@ int main(void)
         }
         
         PORTB = LED;
+        
+        tick();
        
         while (!TimerFlag);	// Wait .1 sec
         TimerFlag = 0;
         
     }
 }
+
+void tick() {
+    switch(states) {
+        case init:
+            states = init;
+            break;
+        default:
+            states = init;
+            break;
+    }
+    
+    switch(states) {
+        case init:
+            break;
+            
+        default:
+            break;
+    }    
+}
+          
 

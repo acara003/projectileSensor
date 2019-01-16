@@ -9,8 +9,9 @@ void USART_init(unsigned char num, unsigned int ubrr) {
         /*Enable receiver and transmitter */
         UCSR0B = (1<<RXEN0)|(1<<TXEN0);
         /* Set frame format: 8data, 2stop bit */
+        //UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01);
         UCSR0C = (1<<USBS0)|(3<<UCSZ00);
-    } else {
+        } else {
         /*Set baud rate */
         UBRR1H = (unsigned char)(ubrr>>8);
         UBRR1L = (unsigned char)ubrr;
@@ -18,6 +19,7 @@ void USART_init(unsigned char num, unsigned int ubrr) {
         UCSR1B = (1<<RXEN1)|(1<<TXEN1);
         /* Set frame format: 8data, 2stop bit */
         UCSR1C = (1<<USBS1)|(3<<UCSZ11);
+        //UCSR1C |= (1 << UCSZ10) | (1 << UCSZ11);
     }
 }
 
