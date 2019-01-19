@@ -27,6 +27,7 @@ void tick();
 unsigned char Ybtn = 0x00;
 unsigned char Bbtn = 0x00;
 unsigned char IR1 = 0x00;
+unsigned char waitCnt = 0x00;
 
 uint16_t counter = 0x00;
 
@@ -44,8 +45,8 @@ int main(void)
     //i2c
     i2c_init();
     
-    //timer set to 10 msec
-    TimerSet(10);
+    //timer set to 2 msec
+    TimerSet(2);
     TimerOn();
     
     //turn on the LED 7seg
@@ -62,9 +63,9 @@ int main(void)
         Ybtn = (~PINB & 0x02) >> 1;
         Bbtn = (~PINB & 0x04) >> 2;
         
-        if(USART_HasReceived(1)) {
+        //if(USART_HasReceived(1)) {
             IR1 = USART_receive(1);
-        }
+        //}
         
         PORTB = IR1;
        
