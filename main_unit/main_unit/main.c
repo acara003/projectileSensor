@@ -38,7 +38,7 @@ uint16_t dcnt = 0x00;
 uint16_t tcnt = 0x00;
 
 //modifiers
-char val = 0x01;
+signed char val = 1;
 float fts = 83.3333;
 //float ms = 25.4;
 float vel = 0;
@@ -118,9 +118,21 @@ void tick() {
             } else {
                 senseStates = waitSense;
                 //action
+                /*
                 if( !( ((val) && (dcnt >= 9999)) || (!(val) && (dcnt <= 0)) ) ) {
                     dcnt += val;
                 }
+                */
+                if(val) {
+                    if(dcnt < 9999) {
+                        dcnt = dcnt + 1;
+                    }
+                } else {
+                    if(dcnt > 0) {
+                        dcnt = dcnt - 1;
+                    }
+                }
+                
             }
             break;
         case changeVal:
@@ -128,7 +140,13 @@ void tick() {
                 senseStates = changeVal;    
             } else {
                 senseStates = waitSense;
-                val = val * -1;
+                
+                //flag for counter
+                if(val) {
+                    val = 0;
+                } else {
+                    val = 1;
+                }
             }
             break;
         case setVal:
