@@ -38,6 +38,18 @@ unsigned char USART_HasReceived(unsigned char usartNum)
 	return (usartNum != 1) ? (UCSR0A & (1 << RXC0)) : (UCSR1A & (1 << RXC1));
 }
 
+void USART_Flush(unsigned char usartNum)
+{
+    static unsigned char dummy;
+    if (usartNum != 1) {
+        while ( UCSR0A & (1 << RXC0) ) { dummy = UDR0; }
+    }
+    else {
+        while ( UCSR1A & (1 << RXC1) ) { dummy = UDR1; }
+    }
+    (void)dummy;
+}
+
 void USART_send(unsigned char data, unsigned char num) {
     if(num != 1) {
         /* Wait for empty transmit buffer */

@@ -8,19 +8,13 @@
 #include <avr/io.h>
 
 #include "usart.h"
-#include "ATmegaTimer.h"
 
 //#define FOSC 1843200
 #define FOSC 8000000UL
 #define BAUD 9600
 #define MYUBRR FOSC/16/BAUD-1
 
-enum state{init,waitSense,sendSense} states;
-void tick();
-
 unsigned char IR = 0x00;
-unsigned char md = 0x00;
-unsigned char waitCnt = 0x00;
 
 int main(void)
 {
@@ -32,60 +26,7 @@ int main(void)
     while (1) 
     {
         IR = ~PINA & 0x03;
-        
-        //SM
-        tick();
-        
+        USART_send(IR,0);
         PORTB = IR;
     }
 }
-
-void tick() {
-    switch(states) {
-        case init:
-            states = waitSense;
-            break;
-        case waitSense:
-            if(md == 2) {
-                
-            } else if((IR & 0x01) && !(md == 2)) {
-                states = sendSense;
-            } else {
-                states = waitSense;
-            }
-            break;
-        case sendSense:
-            if(!(IR&0x01)) {
-                states = waitSense;
-            } else {
-                states = sendSense;
-            }
-            break;
-        default:
-            states = init;
-            break;
-    }
-    
-    switch(states) {
-        case init:
-            md = 1;
-            waitCnt = 0;
-            break;
-        case waitSense:
-            if(USART_HasReceived(0)) {
-                md = USART_receive(0);
-            }
-            if(USART_IsSendReady(0)) {
-                USART_send(0,0);
-            }
-            break;
-        case sendSense:
-            if(USART_IsSendReady(0)) {
-                USART_send(1,0);
-            }
-            break;
-        default:
-            break;
-    }
-}
-
