@@ -133,4 +133,83 @@ void writeNum(uint16_t number,unsigned char drawDots) {
     writeDigitNum(4, number % 10, drawDots);
 }
 
+/* need to fix bugs */
+
+void printError() {
+    for(uint8_t i = 0; i < 4; ++i) {
+        writeDigitRaw(i, (i == 2 ? 0x00 : 0x40));
+    }
+}
+
+void printFloat(double n, uint8_t fracDigits, uint8_t base) {
+     // available digits on display
+     uint8_t numericDigits = 4;
+     
+     // true if the number is negative
+     char isNegative = 0;
+     
+      // is the number negative?
+      if(n < 0) {
+          // need to draw sign later
+          isNegative = 1;
+          // the sign will take up one digit
+          --numericDigits;
+          // pretend the number is positive
+          n *= -1;
+      }
+      
+      // calculate the factor required to shift all fractional digits
+      // into the integer part of the number
+      double toIntFactor = 1.0;
+      for(int i = 0; i < fracDigits; ++i) { toIntFactor *= base; }
+          
+      // create integer containing digits to display by applying
+      // shifting factor and rounding adjustment
+      uint32_t displayNumber = n * toIntFactor + 0.5;
+      
+      // calculate upper bound on displayNumber given
+      // available digits on display
+      uint32_t tooBig = 1;
+      for(int i = 0; i < numericDigits; ++i)  { tooBig *= base; }
+          
+      // if displayNumber is too large, try fewer fractional digits
+      while(displayNumber >= tooBig) {
+          --fracDigits;
+          toIntFactor /= base;
+          displayNumber = n * toIntFactor + 0.5;
+      }
+      
+      // did toIntFactor shift the decimal off the display?
+      if (toIntFactor < 1) {
+          printError();
+      } else {
+          // otherwise, display the number
+          int8_t displayPos = 4;
+          
+          if (displayNumber)  //if displayNumber is not 0
+          {
+              for(uint8_t i = 0; displayNumber || i <= fracDigits; ++i) {
+                  char displayDecimal = (fracDigits != 0 && i == fracDigits);
+                  writeDigitNum(displayPos--, displayNumber % base, displayDecimal);
+                  if(displayPos == 2) writeDigitRaw(displayPos--, 0x00);
+                  displayNumber /= base;
+              }
+          }
+          else {
+              writeDigitNum(displayPos--, 0, 0);
+          }
+          
+          // display negative sign if negative
+          if(isNegative) writeDigitRaw(displayPos--, 0x40);
+          
+          // clear remaining display positions
+          while(displayPos >= 0) writeDigitRaw(displayPos--, 0x00);
+    }
+}
+
+void printNumber(float n, uint8_t base)
+{
+    printFloat(n, 0, base);
+}
+
 #endif /* ADAFRUIT_7SEG_H_ */

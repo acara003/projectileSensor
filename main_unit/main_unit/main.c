@@ -224,7 +224,8 @@ void tick() {
             break;
         case waitVel:
             //display vel
-            writeNum(vel,0);
+            //printNumber(vel,2);
+            printNumber(12.34,2);
             writeDisplay(dev7SEG);
             //set counter to 0
             tcnt = 0;
